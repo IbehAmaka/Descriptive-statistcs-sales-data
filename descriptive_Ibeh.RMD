@@ -1,0 +1,95 @@
+---
+title: "Descriptive analsis"
+author: "Ibeh Amaka"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+This is a sales data containing 34867 observations and 16 variables, first let i will lod all the required data set
+
+
+```{r}
+library(readr)
+library(tidyverse)
+library(janitor)
+library(dplyr)
+library(ggplot2)
+library(data.table)
+```
+i will load my data and check the structure of our data
+
+```{r}
+sales <- read_csv("C:/Users/ibeha/OneDrive/Desktop/MY R DATASET/Online datatset/salesforcourse-4fe2kehu.csv")
+names(sales) 
+dim(sales)
+str(sales)
+```
+data pre-processing.
+```{r}
+sales2= sales[-16]
+head(sales2)
+sales2 = na.omit(sales2)
+```
+missing data is too much and i noticed a column added has all the missing data, so i deleted it and check again
+i notices the last row has the n.a so i removed 
+**lets run our descriptive analysis**
+```{r}
+table(sales2$`Customer Age`)
+age_group = sales2$`Customer Age`
+# histogram with added parameters
+hist(age_group,
+     main="visaulized age groups",
+     xlab="age distribution",
+     col="darkmagenta",
+     xlim = c(15,100), 
+     #ylim = c(0,20),
+     freq=TRUE
+)
+
+```
+which month has the highest revenue
+```{r}
+month_sales = sales2 %>%
+  group_by(Month) %>%
+  summarize(sum_of_sales = sum(Revenue))
+
+month_sales <- month_sales %>% arrange(desc(sum_of_sales))
+month_sales
+```
+which gender bought which category of product
+```{r}
+gender_cat <- summarise(group_by(sales2, `Customer Gender`, `Product Category`), n = n())
+gender_cat 
+#####
+ggplot(gender_cat,aes(x=`Product Category` ,y=n,fill=as.factor(`Customer Gender`)))+
+  geom_bar(stat="identity",position="dodge")+
+  scale_fill_discrete(name="Gender",
+                      breaks=c("F", "M"),
+                      labels=c("Male", "Female"))+
+  xlab("product category")+ylab("frequency")
+```
+The gender that soend the most, i renamed the columns
+```{r}
+gender_rev <- aggregate(sales2$Revenue, by=list(sales2$`Customer Gender`), FUN=mean)
+gender_rev
+setnames(setDT(gender_rev, keep.rownames = FALSE), c(1,2),c("Gender","mean.revenue") )
+ggplot(gender_rev, aes(x =  Gender , y = mean.revenue, fill = Gender)) +
+  geom_col(position = "dodge")
+```
+the state that spent more based on product category
+```{r}
+state_rev <- aggregate(sales2$Revenue, by=list(sales2$State), FUN=mean)
+setnames(setDT(state_rev, keep.rownames = FALSE), c(1,2),c("State","mean.revenue") )
+state_rev  = state_rev %>% arrange(desc(state_rev$mean.revenue))
+ggplot(state_rev, aes(x =  State , y = mean.revenue, fill = State)) +
+  geom_col(position = "dodge")
+```
+country that spent the more on product
+```{r}
+country_rev <- aggregate(sales2$Revenue, by=list(sales2$Country), FUN=mean)
+setnames(setDT(country_rev, keep.rownames = FALSE), c(1,2),c("country","mean.revenue") )
+ggplot(country_rev, aes(x =  country , y = mean.revenue, fill = country)) +
+  geom_col(position = "dodge")
+```
