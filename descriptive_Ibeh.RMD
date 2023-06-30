@@ -93,3 +93,44 @@ setnames(setDT(country_rev, keep.rownames = FALSE), c(1,2),c("country","mean.rev
 ggplot(country_rev, aes(x =  country , y = mean.revenue, fill = country)) +
   geom_col(position = "dodge")
 ```
+find out which age group spend the most revenue
+```{r}
+age_cat <- sales2 %>% 
+  select(c(`Customer Age`, Revenue)) %>% 
+  
+  mutate(age_group = case_when(`Customer Age` <= 20 ~ 1,
+                               `Customer Age` >= 21 & `Customer Age` <= 40 ~ 2,
+                               `Customer Age` >= 41 & `Customer Age` <= 60 ~ 3,
+                               `Customer Age` >= 61 & `Customer Age` <= 80 ~ 4,
+                               `Customer Age` >= 81  ~ 5)) %>% 
+  group_by(age_group)  %>%
+  summarise(mean_rev= mean(Revenue))
+age_cat
+  
+ggplot(data = age_cat, aes(x = age_group, y = mean_rev)) +
+  geom_bar(stat = "identity", width = 0.75) +
+  coord_flip() +
+  labs(x = "\n age group", y = "Count of mean revenue\n", title = "age group and their revenue \n") +
+  theme(plot.title = element_text(hjust = 0.5), 
+        axis.title.x = element_text(face="bold", colour="red", size = 12),
+        axis.title.y = element_text(face="bold", colour="red", size = 12))
+
+```
+let us group the age by the sub category of goods they buy
+```{r}
+age_sub <- sales2 %>% 
+  select(c(`Customer Age`, `Sub Category`)) %>% 
+  
+  mutate(age_group = case_when(`Customer Age` <= 20 ~ 1,
+                               `Customer Age` >= 21 & `Customer Age` <= 40 ~ 2,
+                               `Customer Age` >= 41 & `Customer Age` <= 60 ~ 3,
+                               `Customer Age` >= 61 & `Customer Age` <= 80 ~ 4,
+                               `Customer Age` >= 81  ~ 5)) %>% 
+  group_by(age_group) %>%
+  count(`Sub Category`)
+age_sub
+ggplot(age_sub , aes(x =  age_group , y = n, fill =`Sub Category` )) +
+  geom_col(position = "dodge")
+
+```
+
